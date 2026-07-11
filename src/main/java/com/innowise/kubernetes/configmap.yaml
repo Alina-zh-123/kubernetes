@@ -19,4 +19,3 @@ data:
   MONGO_DB: payments_db
 
   RANDOM_SERVICE_URL: http://api-gateway:8080
-
