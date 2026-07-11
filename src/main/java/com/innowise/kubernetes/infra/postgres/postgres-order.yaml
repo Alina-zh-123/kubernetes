@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres-order-service
+  namespace: microservices
 spec:
   ports:
     - port: 5432
@@ -13,6 +14,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres-order-service
+  namespace: microservices
 spec:
   replicas: 1
   selector:
@@ -25,22 +27,19 @@ spec:
     spec:
       containers:
         - name: postgres-order-service
-          image: postgres-order-service:latest
-          imagePullPolicy: Never
+          image: postgres:16
           ports:
-            - containerPort: 8083
+            - containerPort: 5432
           env:
-            - name: SPRING_PROFILES_ACTIVE
-              value: "docker"
-            - name: DB_USERNAME
+            - name: POSTGRES_DB
+              value: "order_service_db"
+            - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
                   name: microservices-secret
                   key: DB_USERNAME
-            - name: DB_PASSWORD
+            - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: microservices-secret
                   key: DB_PASSWORD
-            - name: DB_URL
-              value: "jdbc:postgresql://postgres:5432/order_service_db"
