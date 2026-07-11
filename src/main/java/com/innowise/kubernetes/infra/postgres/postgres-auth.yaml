@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-auth-service
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: postgres-auth-service
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-auth-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-auth-service
+  template:
+    metadata:
+      labels:
+        app: postgres-auth-service
+    spec:
+      containers:
+        - name: postgres-auth-service
+          image: postgres-auth-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8082
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: DB_PASSWORD
+            - name: DB_URL
+              value: "jdbc:postgresql://postgres:5432/auth_db"
