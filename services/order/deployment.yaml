@@ -1,23 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-gateway
+  name: order-service
   namespace: microservices
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: api-gateway
+      app: order-service
   template:
     metadata:
       labels:
-        app: api-gateway
+        app: order-service
     spec:
       containers:
-        - name: api-gateway
-          image: api-gateway:latest
+        - name: order-service
+          image: order-service:latest
           ports:
-            - containerPort: 8080
+            - containerPort: 8083
+
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "750m"
+              memory: "1Gi"
 
           envFrom:
             - configMapRef:
@@ -28,14 +36,16 @@ spec:
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
-              port: 8080
+              port: 8083
             initialDelaySeconds: 10
             periodSeconds: 15
+            successThreshold: 1
+            failureThreshold: 6
 
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
-              port: 8080
+              port: 8083
             initialDelaySeconds: 5
             periodSeconds: 5
             successThreshold: 1

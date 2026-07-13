@@ -1,23 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: order-service
+  name: payment-service
   namespace: microservices
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: order-service
+      app: payment-service
   template:
     metadata:
       labels:
-        app: order-service
+        app: payment-service
     spec:
       containers:
-        - name: order-service
-          image: order-service:latest
+        - name: payment-service
+          image: payment-service:latest
           ports:
-            - containerPort: 8083
+            - containerPort: 8084
+
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "750m"
+              memory: "1Gi"
 
           envFrom:
             - configMapRef:
@@ -28,14 +36,16 @@ spec:
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
-              port: 8083
+              port: 8084
             initialDelaySeconds: 10
             periodSeconds: 15
+            successThreshold: 1
+            failureThreshold: 6
 
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
-              port: 8083
+              port: 8084
             initialDelaySeconds: 5
             periodSeconds: 5
             successThreshold: 1

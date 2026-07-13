@@ -17,5 +17,8 @@ data:
   KAFKA_BOOTSTRAP_SERVERS: kafka:9092
 
   MONGO_DB: payments_db
+  MONGO_HOST: mongo
+  MONGO_URI: mongodb://mongo:27017/payments_db
 
-  RANDOM_SERVICE_URL: http://api-gateway:8080
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
