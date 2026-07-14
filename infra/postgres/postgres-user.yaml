@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-user-pvc
+  namespace: microservices
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-user-service
+  namespace: microservices
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: postgres-user-service
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-user-service
+  namespace: microservices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-user-service
+  template:
+    metadata:
+      labels:
+        app: postgres-user-service
+    spec:
+      containers:
+        - name: postgres-user-service
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "1500m"
+              memory: "2Gi"
+
+          env:
+            - name: POSTGRES_DB
+              value: "user_service_db"
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: DB_USERNAME
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: microservices-secret
+                  key: DB_PASSWORD
+
+          volumeMounts:
+            - name: postgres-user-storage
+              mountPath: /var/lib/postgresql/data
+            - name: init-scripts
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: init-scripts
+          configMap:
+            name: postgres-user-init
+        - name: postgres-user-storage
+          persistentVolumeClaim:
+            claimName: postgres-user-pvc
